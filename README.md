@@ -61,3 +61,7 @@ Redact is licensed under `AGPL-3.0-or-later`.
 This is the practical open-source choice for the current dependency set because
 PyMuPDF is distributed under AGPL-3.0 or a commercial license. For this
 non-commercial project, we use the AGPL path and keep the source open.
+
+## Credits
+
+See `CREDITS.md` for project contribution credits.
