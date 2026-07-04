@@ -33,7 +33,7 @@ annotations, hidden layers, and other original PDF internals are discarded.
 Install dependencies:
 
 ```powershell
-python -m pip install -r requirements.txt
+python -m pip install -e ".[test]"
 ```
 
 Run the app:
@@ -53,4 +53,3 @@ python -m pytest
 Do not treat simple PDF overlay rectangles as secure redaction. This project
 does not use overlay-only redaction. It exports a fresh rasterized PDF so the
 covered source content is not present underneath the black boxes.
-
