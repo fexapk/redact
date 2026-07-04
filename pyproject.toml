@@ -7,6 +7,13 @@ name = "redact"
 version = "0.1.0"
 description = "Local rasterizing PDF redaction app."
 requires-python = ">=3.11"
+license = { text = "AGPL-3.0-or-later" }
+classifiers = [
+    "License :: OSI Approved :: GNU Affero General Public License v3 or later (AGPLv3+)",
+    "Programming Language :: Python :: 3",
+    "Topic :: Security",
+    "Topic :: Utilities",
+]
 dependencies = [
     "PyMuPDF>=1.26.0",
     "Pillow>=11.0.0",
@@ -23,4 +30,3 @@ redact = "redact_app.app:main"
 
 [tool.setuptools.packages.find]
 where = ["src"]
-

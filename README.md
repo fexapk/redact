@@ -53,3 +53,11 @@ python -m pytest
 Do not treat simple PDF overlay rectangles as secure redaction. This project
 does not use overlay-only redaction. It exports a fresh rasterized PDF so the
 covered source content is not present underneath the black boxes.
+
+## License
+
+Redact is licensed under `AGPL-3.0-or-later`.
+
+This is the practical open-source choice for the current dependency set because
+PyMuPDF is distributed under AGPL-3.0 or a commercial license. For this
+non-commercial project, we use the AGPL path and keep the source open.
