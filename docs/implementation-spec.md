@@ -33,6 +33,7 @@ annotations, metadata, or hidden PDF structure from the source.
 
 - Open a local PDF.
 - Navigate pages.
+- View pages in fit-width mode by default, with fit-page available.
 - Draw redaction boxes with the mouse.
 - Select and delete a redaction box.
 - Export a new image-only redacted PDF.
@@ -64,6 +65,8 @@ coordinates map directly to the exported raster image.
 - Image mode: RGB.
 - Redaction color: black.
 - Output: one image per PDF page.
+- Viewer: fit-width by default, with side padding and a maximum page display
+  width so dense documents stay readable without filling wide monitors.
 
 ## Audit Logging
 
@@ -93,4 +96,3 @@ Manual verification should include:
 - Export.
 - Confirm the exported PDF is visually redacted.
 - Confirm text selection/extraction does not recover the source text.
-

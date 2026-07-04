@@ -3,7 +3,7 @@ from __future__ import annotations
 import logging
 from pathlib import Path
 
-from PySide6.QtGui import QAction, QKeySequence
+from PySide6.QtGui import QAction, QActionGroup, QKeySequence
 from PySide6.QtWidgets import (
     QFileDialog,
     QMainWindow,
@@ -12,7 +12,7 @@ from PySide6.QtWidgets import (
 )
 
 from redact_app.export import export_redacted_pdf
-from redact_app.page_view import PageView
+from redact_app.page_view import PageScrollArea, PageView
 from redact_app.pdf_document import PdfDocument
 from redact_app.redaction import RedactionRect, RedactionStore
 
@@ -39,7 +39,8 @@ class MainWindow(QMainWindow):
         self._page_view = PageView()
         self._page_view.redaction_created.connect(self._add_redaction)
         self._page_view.selection_changed.connect(self._set_selected_redaction)
-        self.setCentralWidget(self._page_view)
+        self._scroll_area = PageScrollArea(self._page_view)
+        self.setCentralWidget(self._scroll_area)
 
         self._build_toolbar()
         self._update_actions()
@@ -70,6 +71,21 @@ class MainWindow(QMainWindow):
         self._next_action = QAction("Next", self)
         self._next_action.triggered.connect(self._next_page)
         toolbar.addAction(self._next_action)
+
+        self._fit_group = QActionGroup(self)
+
+        self._fit_width_action = QAction("Fit Width", self)
+        self._fit_width_action.setCheckable(True)
+        self._fit_width_action.setChecked(True)
+        self._fit_width_action.triggered.connect(self._fit_width)
+        self._fit_group.addAction(self._fit_width_action)
+        toolbar.addAction(self._fit_width_action)
+
+        self._fit_page_action = QAction("Fit Page", self)
+        self._fit_page_action.setCheckable(True)
+        self._fit_page_action.triggered.connect(self._fit_page)
+        self._fit_group.addAction(self._fit_page_action)
+        toolbar.addAction(self._fit_page_action)
 
         self._delete_action = QAction("Delete Box", self)
         self._delete_action.setShortcut(QKeySequence.StandardKey.Delete)
@@ -121,6 +137,14 @@ class MainWindow(QMainWindow):
         self._page_index += 1
         self._render_current_page()
         self._update_actions()
+
+    def _fit_width(self) -> None:
+        self._page_view.set_fit_mode("width")
+        self.statusBar().showMessage("Fit width")
+
+    def _fit_page(self) -> None:
+        self._page_view.set_fit_mode("page")
+        self.statusBar().showMessage("Fit page")
 
     def _add_redaction(self, rect: RedactionRect) -> None:
         self._redactions.add(rect)
@@ -197,6 +221,8 @@ class MainWindow(QMainWindow):
             image,
             self._redactions.for_page(self._page_index),
         )
+        self._scroll_area.verticalScrollBar().setValue(0)
+        self._scroll_area.horizontalScrollBar().setValue(0)
 
     def _update_actions(self) -> None:
         has_document = self._document is not None
@@ -207,6 +233,8 @@ class MainWindow(QMainWindow):
         )
         self._delete_action.setEnabled(self._selected_redaction is not None)
         self._export_action.setEnabled(has_document)
+        self._fit_width_action.setEnabled(has_document)
+        self._fit_page_action.setEnabled(has_document)
         self._page_action.setText(
             f"Page {self._page_index + 1} / {page_count}"
             if has_document

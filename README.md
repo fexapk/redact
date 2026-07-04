@@ -16,6 +16,7 @@ annotations, hidden layers, and other original PDF internals are discarded.
 
 - Open a local PDF.
 - Navigate pages.
+- View pages in fit-width mode by default, with fit-page available.
 - Draw black redaction rectangles.
 - Delete selected rectangles.
 - Export a new image-only redacted PDF.
@@ -47,6 +48,14 @@ Run tests:
 ```powershell
 python -m pytest
 ```
+
+## Viewer Behavior
+
+The viewer defaults to `Fit Width` so dense PDFs are readable on a 1920x1080
+monitor. The page is capped at a comfortable maximum display width and centered
+with side padding, so it does not consume the whole screen on wide displays.
+
+Use `Fit Page` when you want to see the entire page at once.
 
 ## Safety Notes
 

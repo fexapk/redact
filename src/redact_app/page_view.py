@@ -4,14 +4,35 @@ import logging
 from typing import Optional
 
 from PIL import Image
-from PySide6.QtCore import QPoint, QRect, Qt, Signal
+from PySide6.QtCore import QPoint, QRect, QSize, Qt, Signal
 from PySide6.QtGui import QColor, QImage, QMouseEvent, QPainter, QPen
-from PySide6.QtWidgets import QWidget
+from PySide6.QtWidgets import QScrollArea, QWidget
 
 from redact_app.redaction import RedactionRect
 
 
 logger = logging.getLogger(__name__)
+
+VIEW_PADDING = 32
+FIT_WIDTH_SIDE_PADDING = 80
+MAX_FIT_WIDTH_PAGE_WIDTH = 1200
+
+
+class PageScrollArea(QScrollArea):
+    """Scroll container that keeps the page view sized for the viewport."""
+
+    def __init__(self, page_view: "PageView") -> None:
+        super().__init__()
+        self._page_view = page_view
+        self.setWidget(page_view)
+        self.setWidgetResizable(False)
+        self.setAlignment(Qt.AlignmentFlag.AlignHCenter | Qt.AlignmentFlag.AlignTop)
+        self.setBackgroundRole(self.backgroundRole())
+        self.setFrameShape(QScrollArea.Shape.NoFrame)
+
+    def resizeEvent(self, event: object) -> None:
+        super().resizeEvent(event)
+        self._page_view.set_viewport_size(self.viewport().size())
 
 
 class PageView(QWidget):
@@ -26,6 +47,8 @@ class PageView(QWidget):
         self.setMouseTracking(True)
         self.setFocusPolicy(Qt.FocusPolicy.StrongFocus)
 
+        self._fit_mode = "width"
+        self._viewport_size = QSize(640, 480)
         self._page_index = 0
         self._image: Optional[QImage] = None
         self._image_size: tuple[int, int] = (0, 0)
@@ -37,6 +60,25 @@ class PageView(QWidget):
     @property
     def selected_redaction(self) -> Optional[RedactionRect]:
         return self._selected
+
+    @property
+    def fit_mode(self) -> str:
+        return self._fit_mode
+
+    def set_fit_mode(self, fit_mode: str) -> None:
+        if fit_mode not in {"width", "page"}:
+            raise ValueError(f"Unsupported fit mode: {fit_mode}")
+        if self._fit_mode == fit_mode:
+            return
+        self._fit_mode = fit_mode
+        logger.info("Changed viewer fit mode mode=%s", fit_mode)
+        self._update_widget_size()
+
+    def set_viewport_size(self, size: QSize) -> None:
+        if self._viewport_size == size:
+            return
+        self._viewport_size = size
+        self._update_widget_size()
 
     def set_page(
         self,
@@ -52,7 +94,7 @@ class PageView(QWidget):
         self._drag_start = None
         self._drag_current = None
         self.selection_changed.emit(None)
-        self.update()
+        self._update_widget_size()
 
     def set_rectangles(self, rectangles: list[RedactionRect]) -> None:
         self._rectangles = rectangles
@@ -60,6 +102,9 @@ class PageView(QWidget):
             self._selected = None
             self.selection_changed.emit(None)
         self.update()
+
+    def sizeHint(self) -> QSize:
+        return self._desired_widget_size()
 
     def paintEvent(self, event: object) -> None:
         painter = QPainter(self)
@@ -158,14 +203,11 @@ class PageView(QWidget):
         if image_width == 0 or image_height == 0:
             return QRect()
 
-        margin = 20
-        available_width = max(1, self.width() - margin * 2)
-        available_height = max(1, self.height() - margin * 2)
-        scale = min(available_width / image_width, available_height / image_height)
+        scale = self._display_scale()
         target_width = round(image_width * scale)
         target_height = round(image_height * scale)
         left = (self.width() - target_width) // 2
-        top = (self.height() - target_height) // 2
+        top = VIEW_PADDING if self._fit_mode == "width" else (self.height() - target_height) // 2
         return QRect(left, top, target_width, target_height)
 
     def _screen_to_image_point(self, point: QPoint) -> Optional[QPoint]:
@@ -190,10 +232,46 @@ class PageView(QWidget):
         bottom = round(target.top() + rect.bottom * target.height() / image_height)
         return QRect(left, top, right - left, bottom - top)
 
+    def _update_widget_size(self) -> None:
+        self.setFixedSize(self._desired_widget_size())
+        self.updateGeometry()
+        self.update()
+
+    def _desired_widget_size(self) -> QSize:
+        if self._image is None:
+            return self._viewport_size.expandedTo(QSize(640, 480))
+
+        image_width, image_height = self._image_size
+        scale = self._display_scale()
+        target_width = round(image_width * scale)
+        target_height = round(image_height * scale)
+
+        if self._fit_mode == "width":
+            width = max(self._viewport_size.width(), target_width + FIT_WIDTH_SIDE_PADDING * 2)
+            height = target_height + VIEW_PADDING * 2
+            return QSize(width, height)
+
+        return self._viewport_size.expandedTo(
+            QSize(target_width + VIEW_PADDING * 2, target_height + VIEW_PADDING * 2)
+        )
+
+    def _display_scale(self) -> float:
+        image_width, image_height = self._image_size
+        if image_width == 0 or image_height == 0:
+            return 1.0
+
+        if self._fit_mode == "width":
+            available_width = max(1, self._viewport_size.width() - FIT_WIDTH_SIDE_PADDING * 2)
+            target_width = min(available_width, MAX_FIT_WIDTH_PAGE_WIDTH, image_width)
+            return max(0.01, target_width / image_width)
+
+        available_width = max(1, self._viewport_size.width() - VIEW_PADDING * 2)
+        available_height = max(1, self._viewport_size.height() - VIEW_PADDING * 2)
+        return min(available_width / image_width, available_height / image_height, 1.0)
+
 
 def _pil_image_to_qimage(image: Image.Image) -> QImage:
     rgb = image.convert("RGB")
     data = rgb.tobytes("raw", "RGB")
     qimage = QImage(data, rgb.width, rgb.height, rgb.width * 3, QImage.Format.Format_RGB888)
     return qimage.copy()
-
