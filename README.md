@@ -17,6 +17,7 @@ annotations, hidden layers, and other original PDF internals are discarded.
 - Open a local PDF.
 - Navigate pages.
 - View pages in fit-width mode by default, with fit-page available.
+- Warn before export if not every page has been reviewed.
 - Draw black redaction rectangles.
 - Delete selected rectangles.
 - Export a new image-only redacted PDF.
@@ -56,6 +57,13 @@ monitor. The page is capped at a comfortable maximum display width and centered
 with side padding, so it does not consume the whole screen on wide displays.
 
 Use `Fit Page` when you want to see the entire page at once.
+
+## Export Review Prompts
+
+Each page is marked reviewed when it is opened in the viewer. If you try to
+export before visiting every page, Redact warns you and lists the unreviewed
+pages. If every page has been visited, Redact still asks for one final
+confirmation before writing the redacted PDF.
 
 ## Safety Notes
 

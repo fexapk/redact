@@ -34,6 +34,7 @@ annotations, metadata, or hidden PDF structure from the source.
 - Open a local PDF.
 - Navigate pages.
 - View pages in fit-width mode by default, with fit-page available.
+- Warn before export if not every page has been reviewed.
 - Draw redaction boxes with the mouse.
 - Select and delete a redaction box.
 - Export a new image-only redacted PDF.
@@ -67,6 +68,9 @@ coordinates map directly to the exported raster image.
 - Output: one image per PDF page.
 - Viewer: fit-width by default, with side padding and a maximum page display
   width so dense documents stay readable without filling wide monitors.
+- Export review: pages are marked reviewed when opened; export warns if any
+  pages remain unvisited and asks for final confirmation after all pages have
+  been reviewed.
 
 ## Audit Logging
 
@@ -88,6 +92,7 @@ Automated tests cover:
 - Pixel-level black-box drawing.
 - Exported PDF page count.
 - Exported PDF text extraction does not include source text.
+- Page review state uses human-readable page numbers for export warnings.
 
 Manual verification should include:
 

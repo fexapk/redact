@@ -35,6 +35,7 @@ class MainWindow(QMainWindow):
         self._page_index = 0
         self._redactions = RedactionStore()
         self._selected_redaction: RedactionRect | None = None
+        self._visited_pages: set[int] = set()
 
         self._page_view = PageView()
         self._page_view.redaction_created.connect(self._add_redaction)
@@ -116,6 +117,7 @@ class MainWindow(QMainWindow):
             self._page_index = 0
             self._redactions.clear()
             self._selected_redaction = None
+            self._visited_pages.clear()
             self._render_current_page()
             self.statusBar().showMessage(f"Opened {path.name}")
         except Exception:
@@ -177,6 +179,9 @@ class MainWindow(QMainWindow):
         if self._source_path is None:
             return
 
+        if not self._confirm_pages_reviewed_for_export():
+            return
+
         default_path = self._source_path.with_name(
             f"{self._source_path.stem}-redacted.pdf"
         )
@@ -223,6 +228,89 @@ class MainWindow(QMainWindow):
         )
         self._scroll_area.verticalScrollBar().setValue(0)
         self._scroll_area.horizontalScrollBar().setValue(0)
+        self._mark_current_page_visited()
+
+    def _mark_current_page_visited(self) -> None:
+        if self._document is None:
+            return
+        if self._page_index in self._visited_pages:
+            return
+        self._visited_pages.add(self._page_index)
+        logger.info(
+            "Marked page reviewed page=%s reviewed=%s total=%s",
+            self._page_index,
+            len(self._visited_pages),
+            self._document.page_count,
+        )
+
+    def _unvisited_page_numbers(self) -> list[int]:
+        if self._document is None:
+            return []
+        return [
+            page_index + 1
+            for page_index in range(self._document.page_count)
+            if page_index not in self._visited_pages
+        ]
+
+    def _review_progress_text(self) -> str:
+        if self._document is None:
+            return "Reviewed 0 / 0 pages"
+        reviewed_count = len(self._visited_pages)
+        return f"Reviewed {reviewed_count} / {self._document.page_count} pages"
+
+    def _confirm_pages_reviewed_for_export(self) -> bool:
+        unvisited = self._unvisited_page_numbers()
+        if unvisited:
+            return self._confirm_export_with_unvisited_pages(unvisited)
+        return self._confirm_export_after_full_review()
+
+    def _confirm_export_with_unvisited_pages(self, unvisited: list[int]) -> bool:
+        page_text = ", ".join(str(page_number) for page_number in unvisited)
+        message = QMessageBox(self)
+        message.setIcon(QMessageBox.Icon.Warning)
+        message.setWindowTitle("Unreviewed Pages")
+        message.setText("You have not reviewed every page.")
+        message.setInformativeText(
+            f"Unreviewed pages: {page_text}\n\n"
+            "Sensitive information may remain visible on pages you have not checked."
+        )
+        export_button = message.addButton(
+            "Export Anyway",
+            QMessageBox.ButtonRole.AcceptRole,
+        )
+        message.addButton(QMessageBox.StandardButton.Cancel)
+        message.setDefaultButton(QMessageBox.StandardButton.Cancel)
+        message.exec()
+
+        if message.clickedButton() == export_button:
+            logger.warning("Export allowed with unreviewed pages pages=%s", page_text)
+            return True
+
+        logger.info("Export cancelled with unreviewed pages pages=%s", page_text)
+        self.statusBar().showMessage("Export cancelled")
+        return False
+
+    def _confirm_export_after_full_review(self) -> bool:
+        message = QMessageBox(self)
+        message.setIcon(QMessageBox.Icon.Question)
+        message.setWindowTitle("Confirm Export")
+        message.setText("All pages have been reviewed.")
+        message.setInformativeText(
+            "Before exporting, confirm that every page has been checked "
+            "for sensitive information."
+        )
+        export_button = message.addButton("Export", QMessageBox.ButtonRole.AcceptRole)
+        message.addButton(QMessageBox.StandardButton.Cancel)
+        message.setDefaultButton(export_button)
+        message.exec()
+
+        if message.clickedButton() == export_button:
+            logger.info("Export confirmed after full review")
+            return True
+
+        logger.info("Export cancelled after full review")
+        self.statusBar().showMessage("Export cancelled")
+        return False
 
     def _update_actions(self) -> None:
         has_document = self._document is not None
@@ -236,7 +324,7 @@ class MainWindow(QMainWindow):
         self._fit_width_action.setEnabled(has_document)
         self._fit_page_action.setEnabled(has_document)
         self._page_action.setText(
-            f"Page {self._page_index + 1} / {page_count}"
+            f"Page {self._page_index + 1} / {page_count} - {self._review_progress_text()}"
             if has_document
             else "Page 0 / 0"
         )
