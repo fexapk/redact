@@ -30,23 +30,38 @@ annotations, hidden layers, and other original PDF internals are discarded.
 - File size may be larger than the source PDF.
 - Visual quality depends on the configured render DPI.
 
+## Install and Run
+
+Redact requires Python 3.11 or newer. Clone this repository, then run the
+launcher for your operating system from the repository directory. On its first
+run, it creates a local `.venv` virtual environment, installs Redact and its
+runtime dependencies there, and opens the app. Later runs reuse that environment.
+
+### Windows PowerShell
+
+```powershell
+.\run.ps1
+```
+
+If PowerShell blocks local scripts, run it once for this session and try again:
+
+```powershell
+Set-ExecutionPolicy -Scope Process Bypass
+```
+
+### Linux and macOS
+
+```sh
+sh ./run.sh
+```
+
 ## Development
 
-Install dependencies:
+For the test tools, install the project with its `test` extra in your active
+Python environment:
 
-```powershell
+```sh
 python -m pip install -e ".[test]"
-```
-
-Run the app:
-
-```powershell
-python -m redact_app
-```
-
-Run tests:
-
-```powershell
 python -m pytest
 ```
 

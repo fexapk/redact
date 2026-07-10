@@ -23,3 +23,7 @@ Redact started as a collaboration between Fex and Ava.
 - Preserved the core safety invariant: exported PDFs are rebuilt from redacted
   page images rather than original PDF content with overlay rectangles.
 
+## Lin
+
+- AI coding agent and implementation collaborator.
+- Added the cross-platform launchers and clone-and-run installation guidance.

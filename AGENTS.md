@@ -50,6 +50,16 @@ remain open source under AGPL-3.0-or-later unless the PDF engine changes.
 
 ## Useful Commands
 
+Run the app after cloning:
+
+```powershell
+.\run.ps1
+```
+
+```sh
+sh ./run.sh
+```
+
 Install for development:
 
 ```powershell
@@ -79,4 +89,3 @@ Read:
 
 If a change weakens the rasterization safety model, document the reason clearly
 and add verification that sensitive source content is not recoverable.
-
