@@ -32,10 +32,22 @@ annotations, hidden layers, and other original PDF internals are discarded.
 
 ## Install and Run
 
-Redact requires Python 3.11 or newer. Clone this repository, then run the
-launcher for your operating system from the repository directory. On its first
-run, it creates a local `.venv` virtual environment, installs Redact and its
-runtime dependencies there, and opens the app. Later runs reuse that environment.
+Redact requires Python 3.11 or newer. The easiest installation method is to
+clone the repository and run the launcher for your operating system from the
+repository directory. On its first run, the launcher creates a local `.venv`
+virtual environment, installs Redact and its runtime dependencies there, and
+opens the app. Later runs reuse that environment.
+
+To install from a clone:
+
+```sh
+git clone https://github.com/fexapk/redact.git
+cd redact
+```
+
+Install Python 3.11 or newer before running the launcher. On Debian-based Linux,
+the launcher may also need the distribution's Python `venv` package. The
+launcher does not modify the source PDF or install files globally.
 
 ### Debian-based Linux (one command)
 
@@ -71,6 +83,16 @@ Set-ExecutionPolicy -Scope Process Bypass
 
 ```sh
 sh ./run.sh
+```
+
+The first run may take a few minutes while Python dependencies are downloaded.
+If you only want to prepare the environment without opening the application,
+install the project manually:
+
+```sh
+python -m venv .venv
+.venv/bin/python -m pip install --upgrade pip
+.venv/bin/python -m pip install .
 ```
 
 ## Development
