@@ -29,6 +29,51 @@ annotations, metadata, or hidden PDF structure from the source.
 - Python `logging` for audit-friendly local logs.
 - pytest for focused tests.
 
+## Distribution and Installation
+
+The project will provide a Linux installer that can be downloaded and executed
+without first cloning the Git repository. The initial installer scope is
+strictly Debian-based Linux distributions using `apt`; it must detect the
+platform and package manager before making changes and abort with a clear
+message on other operating systems or distributions.
+
+The installer will:
+
+1. Require a supported 64-bit Linux environment and a working shell.
+2. Detect `apt-get` and the Debian package database. It must not attempt to
+   guess or use another package manager.
+3. Check for the system prerequisites `python3`, `python3-venv`, `python3-pip`,
+   `curl`, and `ca-certificates`.
+4. Use `sudo` to install missing prerequisites with `apt-get` when available.
+   If privileges cannot be obtained, abort before downloading or installing
+   the application. The installer must explain the packages it needs and must
+   not silently run the entire application installer as root.
+5. Download a versioned release archive and its published SHA-256 checksum.
+   Git is not an installation prerequisite because the installer consumes the
+   release archive rather than cloning the repository.
+6. Verify the archive checksum before extracting or executing project code.
+7. Install Redact and its Python dependencies into a user-local virtual
+   environment, then create a user-local `redact` launcher.
+8. Clean up temporary downloads and never modify source PDFs or a user's
+   checkout.
+
+Release archives must be published for each installable version, preferably as
+GitHub Release assets. Each release must include:
+
+- A source archive containing the application and packaging metadata.
+- A matching `.sha256` checksum file.
+- A stable version/tag identifier used by the installer.
+
+The installer must use a pinned release version by default, support an explicit
+version override for upgrades or rollbacks, and fail closed when the archive or
+checksum is unavailable or does not match. A copy-and-paste command in the
+README may download the installer script and execute it, but it must reference
+an immutable version or release tag rather than an unpinned branch.
+
+The first implementation supports only Linux. Windows PowerShell and
+macOS/other Linux distributions continue to use the repository launchers until
+separate installers are specified.
+
 ## MVP Features
 
 - Open a local PDF.
