@@ -51,7 +51,7 @@ The installer supports 64-bit Debian-based Linux only. It uses `apt` and
 archive, verifies its checksum, and installs Redact under
 `~/.local/share/redact` with a launcher in `~/.local/bin`. It does not require
 Git. To install another published version, set `REDACT_VERSION`, for example
-`REDACT_VERSION=v0.1.0 bash -c "$(curl -fsSL https://raw.githubusercontent.com/fexapk/redact/v0.1.0/install.sh)"`.
+`curl -fsSL https://raw.githubusercontent.com/fexapk/redact/v0.1.0/install.sh | REDACT_VERSION=v0.1.0 bash`.
 
 ### Windows PowerShell
 

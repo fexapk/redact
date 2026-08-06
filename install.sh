@@ -60,6 +60,7 @@ curl --fail --silent --show-error --location --proto '=https' --tlsv1.2 \
 extract_dir="$tmp_dir/extracted"
 mkdir -p "$extract_dir"
 tar -xzf "$archive" -C "$extract_dir"
+# Release archives are created with the matching "redact-${VERSION}/" prefix.
 source_dir="$extract_dir/redact-${VERSION}"
 [[ -f "$source_dir/pyproject.toml" ]] || die "release archive is missing pyproject.toml."
 
