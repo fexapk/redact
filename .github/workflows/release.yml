@@ -1,0 +1,29 @@
+name: Publish release archive
+
+on:
+  push:
+    tags:
+      - "v*"
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Build archive and checksum
+        run: |
+          version="${GITHUB_REF_NAME}"
+          git archive --format=tar.gz --prefix="redact-${version}/" \
+            --output="redact-${version}.tar.gz" "$version"
+          sha256sum "redact-${version}.tar.gz" > "redact-${version}.tar.gz.sha256"
+      - name: Publish release assets
+        uses: softprops/action-gh-release@v2
+        with:
+          files: |
+            redact-${{ github.ref_name }}.tar.gz
+            redact-${{ github.ref_name }}.tar.gz.sha256

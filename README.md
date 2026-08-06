@@ -37,6 +37,19 @@ launcher for your operating system from the repository directory. On its first
 run, it creates a local `.venv` virtual environment, installs Redact and its
 runtime dependencies there, and opens the app. Later runs reuse that environment.
 
+### Debian-based Linux (one command)
+
+```sh
+curl -fsSL https://raw.githubusercontent.com/fexapk/redact/v0.1.0/install.sh | bash
+```
+
+The installer supports 64-bit Debian-based Linux only. It uses `apt` and
+`sudo` to install missing system prerequisites, downloads the pinned release
+archive, verifies its checksum, and installs Redact under
+`~/.local/share/redact` with a launcher in `~/.local/bin`. It does not require
+Git. To install another published version, set `REDACT_VERSION`, for example
+`REDACT_VERSION=v0.1.0 bash -c "$(curl -fsSL https://raw.githubusercontent.com/fexapk/redact/v0.1.0/install.sh)"`.
+
 ### Windows PowerShell
 
 ```powershell
