@@ -3,7 +3,8 @@ set -Eeuo pipefail
 
 readonly REPOSITORY="fexapk/redact"
 readonly VERSION="${REDACT_VERSION:-v0.1.0}"
-readonly INSTALL_ROOT="${REDACT_INSTALL_ROOT:-${XDG_DATA_HOME:-$HOME/.local/share}/redact}"
+readonly DATA_HOME="${XDG_DATA_HOME:-$HOME/.local/share}"
+readonly INSTALL_ROOT="${REDACT_INSTALL_ROOT:-$DATA_HOME/redact}"
 readonly BIN_DIR="${REDACT_BIN_DIR:-${XDG_BIN_HOME:-$HOME/.local/bin}}"
 readonly ARCHIVE_NAME="redact-${VERSION}.tar.gz"
 readonly RELEASE_URL="https://github.com/${REPOSITORY}/releases/download/${VERSION}"
@@ -20,7 +21,7 @@ command -v apt-get >/dev/null 2>&1 || die "apt-get is required."
 command -v dpkg-query >/dev/null 2>&1 || die "dpkg is required."
 
 missing_packages=()
-for package in python3 python3-venv python3-pip curl ca-certificates; do
+for package in python3 python3-venv python3-pip curl ca-certificates xdg-user-dirs; do
     if ! dpkg-query -W -f='${Status}' "$package" 2>/dev/null | grep -q 'install ok installed'; then
         missing_packages+=("$package")
     fi
@@ -77,6 +78,36 @@ cat > "$BIN_DIR/redact" <<EOF
 exec "$target_dir/.venv/bin/python" -m redact_app "\$@"
 EOF
 chmod 755 "$BIN_DIR/redact"
+
+applications_dir="$DATA_HOME/applications"
+desktop_entry="$applications_dir/redact.desktop"
+mkdir -p "$applications_dir"
+cat > "$desktop_entry" <<EOF
+[Desktop Entry]
+Version=1.0
+Type=Application
+Name=Redact
+GenericName=PDF Redaction Tool
+Comment=Safely redact sensitive PDF files
+Exec=$BIN_DIR/redact
+Terminal=false
+Categories=Utility;Office;
+Keywords=pdf;redact;privacy;security;
+StartupNotify=true
+EOF
+chmod 755 "$desktop_entry"
+if command -v update-desktop-database >/dev/null 2>&1; then
+    update-desktop-database "$applications_dir" >/dev/null 2>&1 || true
+fi
+
+if command -v xdg-user-dir >/dev/null 2>&1; then
+    desktop_dir="$(xdg-user-dir DESKTOP 2>/dev/null || true)"
+    if [[ -n "$desktop_dir" && -d "$desktop_dir" ]]; then
+        cp "$desktop_entry" "$desktop_dir/redact.desktop"
+        chmod 755 "$desktop_dir/redact.desktop"
+        printf 'Desktop shortcut created: %s\n' "$desktop_dir/redact.desktop"
+    fi
+fi
 
 printf 'Redact %s installed. Run: %s/redact\n' "$VERSION" "$BIN_DIR"
 [[ ":$PATH:" == *":$BIN_DIR:"* ]] ||

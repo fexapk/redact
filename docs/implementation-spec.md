@@ -43,7 +43,7 @@ The installer will:
 2. Detect `apt-get` and the Debian package database. It must not attempt to
    guess or use another package manager.
 3. Check for the system prerequisites `python3`, `python3-venv`, `python3-pip`,
-   `curl`, and `ca-certificates`.
+   `curl`, `ca-certificates`, and `xdg-user-dirs`.
 4. Use `sudo` to install missing prerequisites with `apt-get` when available.
    If privileges cannot be obtained, abort before downloading or installing
    the application. The installer must explain the packages it needs and must
@@ -54,7 +54,15 @@ The installer will:
 6. Verify the archive checksum before extracting or executing project code.
 7. Install Redact and its Python dependencies into a user-local virtual
    environment, then create a user-local `redact` launcher.
-8. Clean up temporary downloads and never modify source PDFs or a user's
+8. Create a user application entry at
+   `$XDG_DATA_HOME/applications/redact.desktop` (defaulting to
+   `~/.local/share/applications`) so Redact appears in the desktop environment's
+   application menu.
+9. Resolve the user's desktop directory with `xdg-user-dir DESKTOP`. When that
+   directory exists, copy the same entry there, mark it executable, and report
+   the shortcut path. Do not assume the directory is named `Desktop`; if it
+   cannot be resolved, keep the application-menu entry and continue.
+10. Clean up temporary downloads and never modify source PDFs or a user's
    checkout.
 
 Release archives must be published for each installable version, preferably as

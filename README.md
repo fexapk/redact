@@ -50,7 +50,9 @@ The installer supports 64-bit Debian-based Linux only. It uses `apt` and
 `sudo` to install missing system prerequisites, downloads the pinned release
 archive, verifies its checksum, and installs Redact under
 `~/.local/share/redact` with a launcher in `~/.local/bin`. It does not require
-Git. To install another published version, set `REDACT_VERSION`, for example
+Git. It also adds `Redact` to the user's application menu and creates a desktop
+shortcut when the configured XDG desktop directory exists. To install another
+published version, set `REDACT_VERSION`, for example
 `curl -fsSL https://raw.githubusercontent.com/fexapk/redact/v0.1.0/install.sh | REDACT_VERSION=v0.2.0 bash`.
 
 ### Windows PowerShell
