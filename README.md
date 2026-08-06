@@ -43,6 +43,9 @@ runtime dependencies there, and opens the app. Later runs reuse that environment
 curl -fsSL https://raw.githubusercontent.com/fexapk/redact/v0.1.0/install.sh | bash
 ```
 
+Review the versioned script URL before running it if you prefer not to pipe
+remote content directly to a shell.
+
 The installer supports 64-bit Debian-based Linux only. It uses `apt` and
 `sudo` to install missing system prerequisites, downloads the pinned release
 archive, verifies its checksum, and installs Redact under
