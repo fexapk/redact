@@ -54,6 +54,8 @@ curl --fail --silent --show-error --location --proto '=https' --tlsv1.2 \
 curl --fail --silent --show-error --location --proto '=https' --tlsv1.2 \
     "$RELEASE_URL/$ARCHIVE_NAME.sha256" --output "$checksum" ||
     die "could not download the release checksum."
+# Check from the temporary directory because the release checksum contains the
+# archive's bare filename.
 (cd "$tmp_dir" && sha256sum --check "$(basename "$checksum")") ||
     die "release checksum verification failed."
 
